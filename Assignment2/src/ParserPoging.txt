@@ -1,0 +1,71 @@
+{
+module Grammar where
+import Tokens as L 
+}
+
+%name parseCalc
+%tokentype { Token }
+%error { parseError }
+
+
+data Token =    Arrow | Dot | Comma | Go | Take | Mark | Nothingg | Turn | Case | Of | End | Leftt | Rightt | Front | Semicolon 
+                | Empty | Lambda | Debris | Asteroid | Boundary | Underscore | Ident String
+	deriving (Eq,Show)
+
+%token
+    PArrow { L.Arrow }
+    PDot  { L.Dot }
+    PComma {L.Comma}
+    PGo {L.Go}
+    PTake {L.Take}
+    PMark {L.Mark}
+    PNothing {L.Nothingg}
+    PTurn {L.Turn}
+    PCase {L.Case}
+    POf {L.Of}
+    PEnd {L.End}
+    PLeft {L.Leftt}
+    PRight {L.Rightt}
+    PFront {L.Front}
+    PSemicolon {L.Semicolon}
+    PEmpty {L.Empty}
+    PLambda {L.Lambda}
+    PDebris {L.Debris}
+    PAsteroid {L.Asteroid}
+    PBoundary {L.Boundary}
+    PUnderscore {L.Underscore}
+    PIdent {L.Ident $$}
+
+%%
+
+Program : Rules 
+Rules :                     { [] }
+      | Rule Rules          { PIdent  $2  Commands}    
+Rule : PIdent PArrow Commands PDot {Rule $1 $3}
+
+Exp : let var '=' Exp in Exp { Let $2 $4 $6 }
+    | Exp '+' Exp            { Plus $1 $3 }
+    | Exp '-' Exp            { Minus $1 $3 }
+    | Exp '*' Exp            { Times $1 $3 }
+    | Exp '/' Exp            { Div $1 $3 }
+    | '(' Exp ')'            { $2 }
+    | '-' Exp %prec NEG      { Negate $2 }
+    | int                    { Int $1 }
+    | var                    { Var $1 }
+
+{
+
+parseError :: [Token] -> a
+parseError _ = error "Parse error"
+
+data Exp = Let String Exp Exp
+         | Plus Exp Exp
+         | Minus Exp Exp
+         | Times Exp Exp
+         | Div Exp Exp
+         | Negate Exp
+         | Brack Exp
+         | Int Int
+         | Var String
+         deriving Show
+}

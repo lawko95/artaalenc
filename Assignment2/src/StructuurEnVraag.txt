@@ -1,0 +1,35 @@
+-- Exercise 2
+data Program = Program Rules
+             deriving (Show)
+
+data Rules = NoRule | SomeRules Rule Rules
+           deriving (Show)
+
+data Identifier = SingleChar Char | MultiChar Char Identifier
+                deriving (Show)
+
+data Rule = Rule Identifier Commands
+          deriving (Show)
+
+data Commands = NoCommand | SomeCommands Command Commands
+              deriving (Show)
+
+data Command = GoCommand | TakeCommand | MarkCommand | NothingCommand | TurnCommand Direction | CaseCommand Direction Alts | RuleCommand Identifier
+             deriving (Show)  
+
+data Direction = LeftDir | RightDir | FrontDir
+                deriving (Show)
+
+data Alts = NoAlt | SomeAlt Alt Alts  
+          deriving (Show)
+
+data Alt = Alt Pat Commands
+         deriving (Show)
+
+data Pat = EmptyPat | LambdaPat | DebrisPat | AsteroidPat | BoundaryPat | UnderscorePat
+         deriving (Show)
+
+--Exercise 4
+--Happy prefers Left Recursive grammars, because it can create parsers for them with constant stack space, 
+--while Right Recursive grammars result in parsers with stack space proportional to the length of the list being parsed. 
+--Parser combinators however require Right Recursive grammars, because Left Recursive grammars cause infinite loops.
