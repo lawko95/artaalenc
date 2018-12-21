@@ -147,6 +147,7 @@ step env state@(ArrowState space pos heading stack@(x:xs)) = case x of
                                                                TakeCommand -> takeStep state
                                                                MarkCommand -> markStep state
                                                                NothingCommand -> nothingStep state
+                                                               TurnCommand dir -> turnStep state dir
 
 goStep :: ArrowState -> Step
 goStep state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == LeftHead = returnGoStep (y,x-1) LeftHead (L.lookup (y, x-1) space) 
@@ -167,4 +168,16 @@ markStep state@(ArrowState space pos heading (cmd:cmds)) = Ok (ArrowState (L.ins
 
 nothingStep :: ArrowState -> Step
 nothingStep state@(ArrowState space pos heading (cmd:cmds)) = Ok (ArrowState space pos heading cmds)
+
+turnStep :: ArrowState -> Direction -> Step
+turnStep state@(ArrowState space pos heading (cmd:cmds)) FrontDir = Ok (ArrowState space pos heading cmds )
+turnStep state@(ArrowState space pos heading (cmd:cmds)) dir = Ok (ArrowState space pos (newHeading heading dir) cmds ) 
+  where newHeading LeftHead LeftDir   = BackHead
+        newHeading LeftHead RightDir  = FrontHead
+        newHeading RightHead LeftDir  = FrontHead
+        newHeading RightHead RightDir = BackHead
+        newHeading FrontHead LeftDir  = LeftHead
+        newHeading FrontHead RightDir = RightHead
+        newHeading BackHead LeftDir   = RightHead
+        newHeading BackHead RightDir  = LeftHead
 
