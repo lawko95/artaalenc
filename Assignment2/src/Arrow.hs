@@ -8,6 +8,7 @@ import Control.Monad (replicateM)
 import Data.Char (isSpace)
 import Parser
 import Scanner
+import Data.Maybe
 
 
 --main :: IO()
@@ -42,19 +43,10 @@ contentsTable :: [(Contents,Char)]
 contentsTable =
   [  (Empty,'.'),(Lambda,'\\'),(Debris,'%'),(Asteroid,'O'),(Boundary,'#')]
 
--- These three should be defined by you
+-- These three should be defined by you  OUR DATATYPES CAN BE FOUND IN PARSER.HS
 -- type Ident = ()
 -- type Commands = ()
 -- type Heading = ()
-
--- type Environment = Map Ident Commands
-
--- type Stack       =  Commands
--- data ArrowState  =  ArrowState Space Pos Heading Stack
-
--- data Step  =  Done  Space Pos Heading
---            |  Ok    ArrowState
---            |  Fail  String
 
 --Exercise 4
 --Happy prefers Left Recursive grammars, because it can create parsers for them with constant stack space, 
@@ -121,8 +113,30 @@ printSpace space = "(" ++ show maxWidth ++ "," ++ show maxHeight ++ ")\n" ++
         maxHeight = foldr (\((y,_),_) rest -> max y rest) 0 spaceList 
         spaceList = L.toList space
 
-run :: Parser a b -> [a] -> Maybe b
+run :: Parser a b -> [a] -> Maybe b -- From assignment, for testing the printer
 run parser str = case result of
              ((r,_):_) -> Just r
              _         -> Nothing
     where result = parse parser str
+
+-- Exercise 8
+type Environment = Map Identifier [Command]
+
+toEnvironment :: String -> Environment
+toEnvironment s = translate prog
+  where prog = parseCalc (alexScanTokens s)
+
+translate :: Program -> Environment
+translate prog@(Program rules) | check prog = rulesToEnv rules
+                               | otherwise = undefined
+
+rulesToEnv :: [Rule] -> Environment
+rulesToEnv rules = L.fromList (map (\(Rule id cmds) -> (id, cmds)) rules)
+
+-- Exercise 9
+type Stack       =  [Command]
+data ArrowState  =  ArrowState Space Pos Direction Stack
+
+data Step  =  Done  Space Pos Direction
+           |  Ok    ArrowState
+           |  Fail  String
