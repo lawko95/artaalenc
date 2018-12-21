@@ -143,17 +143,19 @@ data Step  =  Done  Space Pos Direction
 
 step :: Environment -> ArrowState -> Step
 step env state@(ArrowState space pos heading stack@(x:xs)) = case x of 
-                                                               GoCommand -> go state
-                                                              --  TakeCommand -> take state
+                                                               GoCommand -> goStep state
+                                                               TakeCommand -> takeStep state
 
-go :: ArrowState -> Step
-go state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == LeftHead = returnGoStep (y,x-1) LeftHead (L.lookup (y, x-1) space) 
-                                                           | heading == RightHead = returnGoStep (y,x+1) RightHead (L.lookup (y,x+1) space) 
-                                                           | heading == FrontHead = returnGoStep (y-1,x) FrontHead (L.lookup (y-1,x) space) 
-                                                           | heading == BackHead = returnGoStep (y+1,x) BackHead (L.lookup (y+1,x) space) 
-  where returnGoStep pos dir Nothing = Fail "There's nothing there"
-        returnGoStep pos dir (Just x) | x == Empty || x == Lambda || x == Debris = Ok (ArrowState space pos dir cds)
-        returnGoStep pos dir _ = Ok (ArrowState space oldPos dir cds)
+goStep :: ArrowState -> Step
+goStep state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == LeftHead = returnGoStep (y,x-1) LeftHead (L.lookup (y, x-1) space) 
+                                                               | heading == RightHead = returnGoStep (y,x+1) RightHead (L.lookup (y,x+1) space) 
+                                                               | heading == FrontHead = returnGoStep (y-1,x) FrontHead (L.lookup (y-1,x) space) 
+                                                               | heading == BackHead = returnGoStep (y+1,x) BackHead (L.lookup (y+1,x) space) 
+  where returnGoStep _ _ Nothing = Fail "There's nothing there"
+        returnGoStep pos heading (Just x) | x == Empty || x == Lambda || x == Debris = Ok (ArrowState space pos heading cds)
+        returnGoStep pos heading _ = Ok (ArrowState space oldPos heading cds)
 
--- take :: ArrowState -> Step
--- take state@(Arrowstate space pos dir (cmd:cmds)) |
+takeStep :: ArrowState -> Step
+takeStep state@(ArrowState space pos heading (cmd:cmds)) = returnTakeStep (L.lookup pos space) 
+  where returnTakeStep (Just x) | x == Lambda || x == Debris = Ok (ArrowState (L.insert pos Empty space) pos heading cmds)
+        returnTakeStep _ = Ok (ArrowState space pos heading cmds) 
