@@ -140,3 +140,15 @@ data ArrowState  =  ArrowState Space Pos Direction Stack
 data Step  =  Done  Space Pos Direction
            |  Ok    ArrowState
            |  Fail  String
+
+step :: Environment -> ArrowState -> Step
+step env state@(ArrowState space pos direction stack@(x:xs)) = case x of 
+                                                               GoCommand -> go state
+
+go :: ArrowState -> Step
+go state@(ArrowState space oldPos@(y,x) dir (cmd:cds)) | dir == LeftDir = returnGoStep (y,x-1) LeftDir (L.lookup (y, x-1) space) 
+                                                       | dir == RightDir = returnGoStep (y,x+1) LeftDir (L.lookup (y,x+1) space) 
+                                                       | dir == FrontDir = returnGoStep (y-1,x) LeftDir (L.lookup (y-1,x) space) 
+  where returnGoStep pos dir Nothing = Fail "There's nothing there"
+        returnGoStep pos dir (Just x) | x == Empty || x == Lambda || x == Debris = Ok (ArrowState space pos dir cds)
+        returnGoStep pos dir _ = Ok (ArrowState space oldPos dir cds)

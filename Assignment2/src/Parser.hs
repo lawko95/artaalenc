@@ -434,7 +434,7 @@ data Command = GoCommand | TakeCommand | MarkCommand | NothingCommand | TurnComm
   deriving (Show) 
 
 data Direction = LeftDir | RightDir | FrontDir
-   deriving (Show)
+   deriving (Show, Eq)
 
 data Alt = Alt Pat [Command]
   deriving (Show)
