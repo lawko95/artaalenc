@@ -46,7 +46,6 @@ contentsTable =
 -- These three should be defined by you  OUR DATATYPES CAN BE FOUND IN PARSER.HS
 -- type Ident = ()
 -- type Commands = ()
--- type Heading = ()
 
 --Exercise 4
 --Happy prefers Left Recursive grammars, because it can create parsers for them with constant stack space, 
@@ -134,21 +133,27 @@ rulesToEnv :: [Rule] -> Environment
 rulesToEnv rules = L.fromList (map (\(Rule id cmds) -> (id, cmds)) rules)
 
 -- Exercise 9
+data Heading     = LeftHead | RightHead | FrontHead | BackHead deriving Eq
 type Stack       =  [Command]
-data ArrowState  =  ArrowState Space Pos Direction Stack
+data ArrowState  =  ArrowState Space Pos Heading Stack
 
 data Step  =  Done  Space Pos Direction
            |  Ok    ArrowState
            |  Fail  String
 
 step :: Environment -> ArrowState -> Step
-step env state@(ArrowState space pos direction stack@(x:xs)) = case x of 
+step env state@(ArrowState space pos heading stack@(x:xs)) = case x of 
                                                                GoCommand -> go state
+                                                              --  TakeCommand -> take state
 
 go :: ArrowState -> Step
-go state@(ArrowState space oldPos@(y,x) dir (cmd:cds)) | dir == LeftDir = returnGoStep (y,x-1) LeftDir (L.lookup (y, x-1) space) 
-                                                       | dir == RightDir = returnGoStep (y,x+1) LeftDir (L.lookup (y,x+1) space) 
-                                                       | dir == FrontDir = returnGoStep (y-1,x) LeftDir (L.lookup (y-1,x) space) 
+go state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == LeftHead = returnGoStep (y,x-1) LeftHead (L.lookup (y, x-1) space) 
+                                                           | heading == RightHead = returnGoStep (y,x+1) RightHead (L.lookup (y,x+1) space) 
+                                                           | heading == FrontHead = returnGoStep (y-1,x) FrontHead (L.lookup (y-1,x) space) 
+                                                           | heading == BackHead = returnGoStep (y+1,x) BackHead (L.lookup (y+1,x) space) 
   where returnGoStep pos dir Nothing = Fail "There's nothing there"
         returnGoStep pos dir (Just x) | x == Empty || x == Lambda || x == Debris = Ok (ArrowState space pos dir cds)
         returnGoStep pos dir _ = Ok (ArrowState space oldPos dir cds)
+
+-- take :: ArrowState -> Step
+-- take state@(Arrowstate space pos dir (cmd:cmds)) |
