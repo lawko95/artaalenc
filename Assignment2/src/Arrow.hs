@@ -177,17 +177,39 @@ nothingStep state@(ArrowState space pos heading (cmd:cmds)) = Ok (ArrowState spa
 turnStep :: ArrowState -> Direction -> Step
 turnStep state@(ArrowState space pos heading (cmd:cmds)) FrontDir = Ok (ArrowState space pos heading cmds )
 turnStep state@(ArrowState space pos heading (cmd:cmds)) dir = Ok (ArrowState space pos (newHeading heading dir) cmds ) 
-  where newHeading LeftHead LeftDir   = BackHead
-        newHeading LeftHead RightDir  = FrontHead
-        newHeading RightHead LeftDir  = FrontHead
-        newHeading RightHead RightDir = BackHead
-        newHeading FrontHead LeftDir  = LeftHead
-        newHeading FrontHead RightDir = RightHead
-        newHeading BackHead LeftDir   = RightHead
-        newHeading BackHead RightDir  = LeftHead
+
+newHeading :: Heading -> Direction -> Heading
+newHeading LeftHead LeftDir   = BackHead
+newHeading LeftHead RightDir  = FrontHead
+newHeading RightHead LeftDir  = FrontHead
+newHeading RightHead RightDir = BackHead
+newHeading FrontHead LeftDir  = LeftHead
+newHeading FrontHead RightDir = RightHead
+newHeading BackHead LeftDir   = RightHead
+newHeading BackHead RightDir  = LeftHead
 
 caseStep :: ArrowState -> Direction -> [Alt] -> Step
-caseStep = undefined
+caseStep state@(ArrowState space pos@(y,x) heading (cmd:cmds)) dir alts = readAlts (patScanPosition (newHeading heading dir)) alts
+  where readAlts scannedPat ((Alt pat commands):rest) | samePattern scannedPat pat = Ok (ArrowState space pos heading (commands ++ cmds))
+                                                      | otherwise = readAlts scannedPat rest
+        readAlts scannedPat [] = Fail "No alternatives match"
+        patScan Nothing = Boundary
+        patScan (Just x) = x                                                               
+        patScanPosition LeftHead  = patScan (L.lookup (y,x-1) space)
+        patScanPosition RightHead = patScan (L.lookup (y,x+1) space)
+        patScanPosition FrontHead = patScan (L.lookup (y-1,x) space)
+        patScanPosition BackHead  = patScan (L.lookup (y+1,x) space)
+
+samePattern :: Contents -> Pat -> Bool
+samePattern Empty EmptyPat = True
+samePattern Lambda LambdaPat = True
+samePattern Debris DebrisPat = True
+samePattern Asteroid AsteroidPat = True
+samePattern Boundary BoundaryPat = True
+samePattern _ UnderscorePat = True
+samePattern _ _ = False
+
+
 
 ruleStep :: Environment -> ArrowState -> Identifier -> Step
 ruleStep env state@(ArrowState space pos heading (cmd:cmds)) id = returnRuleStep (L.lookup id env) 
