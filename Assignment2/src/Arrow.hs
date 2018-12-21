@@ -16,7 +16,8 @@ import Scanner
 type Space     =  Map Pos Contents
 type Size      =  Int
 type Pos       =  (Int, Int)
-data Contents  =  Empty | Lambda | Debris | Asteroid | Boundary
+data Contents  =  Empty | Lambda | Debris | Asteroid | Boundary 
+  deriving Eq
 
 parseSpace :: Parser Char Space
 parseSpace =
@@ -110,3 +111,12 @@ check :: Program -> Bool
 check prog = True --Works everytime!
 
 -- Exercise 7
+showContent :: Contents -> String
+showContent c = foldr (\x y -> if fst x == c then [snd x] ++ y else y ) "" contentsTable
+
+printSpace :: Space -> String
+printSpace space = "(" ++ show maxWidth ++ "," ++ show maxHeight ++ ")\n" ++ 
+                   foldr (\((height, width), cont) rest -> if width == maxWidth then showContent cont ++ "\n" ++ rest else showContent cont ++ rest) "" spaceList
+  where maxWidth  = foldr (\((_,x),_) rest -> max x rest) 0 spaceList 
+        maxHeight = foldr (\((y,_),_) rest -> max y rest) 0 spaceList 
+        spaceList = L.toList space
