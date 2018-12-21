@@ -154,7 +154,7 @@ step env state@(ArrowState space pos heading stack@(x:xs)) = case stack of
                                                                RuleCommand id -> ruleStep env state id
 
 
-goStep :: ArrowState -> Step
+goStep :: ArrowState -> Step -- Check the heading, fail if that position is nothing, go or stay based on the pattern of the new position
 goStep state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == LeftHead = returnGoStep (y,x-1) LeftHead (L.lookup (y, x-1) space) 
                                                                | heading == RightHead = returnGoStep (y,x+1) RightHead (L.lookup (y,x+1) space) 
                                                                | heading == FrontHead = returnGoStep (y-1,x) FrontHead (L.lookup (y-1,x) space) 
@@ -163,22 +163,22 @@ goStep state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == Left
         returnGoStep pos heading (Just x) | x == Empty || x == Lambda || x == Debris = Ok (ArrowState space pos heading cds)
         returnGoStep pos heading _ = Ok (ArrowState space oldPos heading cds)
 
-takeStep :: ArrowState -> Step
+takeStep :: ArrowState -> Step -- Make the pattern of the current position empty if it's lambda or debris, else do nothing
 takeStep state@(ArrowState space pos heading (cmd:cmds)) = returnTakeStep (L.lookup pos space) 
   where returnTakeStep (Just x) | x == Lambda || x == Debris = Ok (ArrowState (L.insert pos Empty space) pos heading cmds)
         returnTakeStep _ = Ok (ArrowState space pos heading cmds) 
 
-markStep :: ArrowState -> Step
+markStep :: ArrowState -> Step -- Leave a lambda at the current position
 markStep state@(ArrowState space pos heading (cmd:cmds)) = Ok (ArrowState (L.insert pos Lambda space) pos heading cmds)
 
-nothingStep :: ArrowState -> Step
+nothingStep :: ArrowState -> Step -- Do nothing
 nothingStep state@(ArrowState space pos heading (cmd:cmds)) = Ok (ArrowState space pos heading cmds)
 
-turnStep :: ArrowState -> Direction -> Step
+turnStep :: ArrowState -> Direction -> Step -- Change the heading based on the direction, if direction == FrontDir, do nothing
 turnStep state@(ArrowState space pos heading (cmd:cmds)) FrontDir = Ok (ArrowState space pos heading cmds )
 turnStep state@(ArrowState space pos heading (cmd:cmds)) dir = Ok (ArrowState space pos (newHeading heading dir) cmds ) 
 
-newHeading :: Heading -> Direction -> Heading
+newHeading :: Heading -> Direction -> Heading -- Get new heading based on a heading and a direction (Standalone function because also used in caseStep)
 newHeading LeftHead LeftDir   = BackHead
 newHeading LeftHead RightDir  = FrontHead
 newHeading RightHead LeftDir  = FrontHead
@@ -190,17 +190,18 @@ newHeading BackHead RightDir  = LeftHead
 
 caseStep :: ArrowState -> Direction -> [Alt] -> Step
 caseStep state@(ArrowState space pos@(y,x) heading (cmd:cmds)) dir alts = readAlts (patScanPosition (newHeading heading dir)) alts
-  where readAlts scannedPat ((Alt pat commands):rest) | samePattern scannedPat pat = Ok (ArrowState space pos heading (commands ++ cmds))
+  -- readAlts sees if the Pat of an Alt matches the Contents of the scanned position, if it matches it puts the Alt's commmands onto the stack
+  where readAlts scannedPat ((Alt pat commands):rest) | samePattern scannedPat pat = Ok (ArrowState space pos heading (commands ++ cmds)) 
                                                       | otherwise = readAlts scannedPat rest
         readAlts scannedPat [] = Fail "No alternatives match"
         patScan Nothing = Boundary
         patScan (Just x) = x                                                               
-        patScanPosition LeftHead  = patScan (L.lookup (y,x-1) space)
+        patScanPosition LeftHead  = patScan (L.lookup (y,x-1) space) -- patScanPosition (with help of patScan) decides what Contents there is at the position being scanned
         patScanPosition RightHead = patScan (L.lookup (y,x+1) space)
         patScanPosition FrontHead = patScan (L.lookup (y-1,x) space)
         patScanPosition BackHead  = patScan (L.lookup (y+1,x) space)
 
-samePattern :: Contents -> Pat -> Bool
+samePattern :: Contents -> Pat -> Bool -- Checks whether a Pat is the same as a Contents (Bit of a hassle since they are different data types)
 samePattern Empty EmptyPat = True
 samePattern Lambda LambdaPat = True
 samePattern Debris DebrisPat = True
@@ -211,7 +212,7 @@ samePattern _ _ = False
 
 
 
-ruleStep :: Environment -> ArrowState -> Identifier -> Step
+ruleStep :: Environment -> ArrowState -> Identifier -> Step -- If it finds the identifier in the environment it puts the commands it has in the environment on the stack
 ruleStep env state@(ArrowState space pos heading (cmd:cmds)) id = returnRuleStep (L.lookup id env) 
   where returnRuleStep Nothing = Fail "The rule is not defined"
         returnRuleStep (Just x) = Ok (ArrowState space pos heading (x++cmds))
