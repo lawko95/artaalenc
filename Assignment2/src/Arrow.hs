@@ -43,9 +43,11 @@ contentsTable :: [(Contents,Char)]
 contentsTable =
   [  (Empty,'.'),(Lambda,'\\'),(Debris,'%'),(Asteroid,'O'),(Boundary,'#')]
 
--- These three should be defined by you  OUR DATATYPES CAN BE FOUND IN PARSER.HS
 -- type Ident = ()
 -- type Commands = ()
+
+--Exercise 2
+--Our abstract syntax can be found in Parser.y
 
 --Exercise 4
 --Happy prefers Left Recursive grammars, because it can create parsers for them with constant stack space, 
@@ -99,15 +101,15 @@ foldIdentifier (string) = string
 
 -- Exercise 6
 check :: Program -> Bool
-check prog = True --Works everytime!
+check prog = True -- 60% of the times it works 100% of the times!
 
 -- Exercise 7
 showContent :: Contents -> String
-showContent c = foldr (\x y -> if fst x == c then [snd x] ++ y else y ) "" contentsTable
+showContent c = foldr (\x y -> if fst x == c then [snd x] ++ y else y ) "" contentsTable -- Get the string value for a given Contents from the contentsTable
 
 printSpace :: Space -> String
-printSpace space = "(" ++ show maxWidth ++ "," ++ show maxHeight ++ ")\n" ++ 
-                   foldr (\((height, width), cont) rest -> if width == maxWidth then showContent cont ++ "\n" ++ rest else showContent cont ++ rest) "" spaceList
+printSpace space = "(" ++ show maxHeight ++ "," ++ show maxWidth ++ ")\n" ++ -- Prints the (height, width) line
+                   foldr (\((height, width), cont) rest -> if width == maxWidth then showContent cont ++ "\n" ++ rest else showContent cont ++ rest) "" spaceList  -- Prints the content at the position plus \n if it's the last position of the row
   where maxWidth  = foldr (\((_,x),_) rest -> max x rest) 0 spaceList 
         maxHeight = foldr (\((y,_),_) rest -> max y rest) 0 spaceList 
         spaceList = L.toList space
@@ -123,14 +125,14 @@ type Environment = Map Identifier [Command]
 
 toEnvironment :: String -> Environment
 toEnvironment s = translate prog
-  where prog = parseCalc (alexScanTokens s)
+  where prog = parseCalc (alexScanTokens s) -- Get a program from the string 
 
 translate :: Program -> Environment
-translate prog@(Program rules) | check prog = rulesToEnv rules
-                               | otherwise = undefined
+translate prog@(Program rules) | check prog = rulesToEnv rules -- Check if the program is correct
+                               | otherwise = error "Program is incorrect"
 
 rulesToEnv :: [Rule] -> Environment
-rulesToEnv rules = L.fromList (map (\(Rule id cmds) -> (id, cmds)) rules)
+rulesToEnv rules = L.fromList (map (\(Rule id cmds) -> (id, cmds)) rules) -- Turns the list of rules into a map by first making a list of pairs to be used as keys and values
 
 -- Exercise 9
 data Heading     = LeftHead | RightHead | FrontHead | BackHead deriving Eq
@@ -209,8 +211,6 @@ samePattern Asteroid AsteroidPat = True
 samePattern Boundary BoundaryPat = True
 samePattern _ UnderscorePat = True
 samePattern _ _ = False
-
-
 
 ruleStep :: Environment -> ArrowState -> Identifier -> Step -- If it finds the identifier in the environment it puts the commands it has in the environment on the stack
 ruleStep env state@(ArrowState space pos heading (cmd:cmds)) id = returnRuleStep (L.lookup id env) 
