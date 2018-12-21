@@ -145,6 +145,8 @@ step :: Environment -> ArrowState -> Step
 step env state@(ArrowState space pos heading stack@(x:xs)) = case x of 
                                                                GoCommand -> goStep state
                                                                TakeCommand -> takeStep state
+                                                               MarkCommand -> markStep state
+                                                               NothingCommand -> nothingStep state
 
 goStep :: ArrowState -> Step
 goStep state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == LeftHead = returnGoStep (y,x-1) LeftHead (L.lookup (y, x-1) space) 
@@ -159,3 +161,10 @@ takeStep :: ArrowState -> Step
 takeStep state@(ArrowState space pos heading (cmd:cmds)) = returnTakeStep (L.lookup pos space) 
   where returnTakeStep (Just x) | x == Lambda || x == Debris = Ok (ArrowState (L.insert pos Empty space) pos heading cmds)
         returnTakeStep _ = Ok (ArrowState space pos heading cmds) 
+
+markStep :: ArrowState -> Step
+markStep state@(ArrowState space pos heading (cmd:cmds)) = Ok (ArrowState (L.insert pos Lambda space) pos heading cmds)
+
+nothingStep :: ArrowState -> Step
+nothingStep state@(ArrowState space pos heading (cmd:cmds)) = Ok (ArrowState space pos heading cmds)
+
