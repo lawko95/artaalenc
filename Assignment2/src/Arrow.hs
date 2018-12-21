@@ -54,9 +54,33 @@ data Step  =  Done  Space Pos Heading
            |  Ok    ArrowState
            |  Fail  String
 
-
-
 --Exercise 4
 --Happy prefers Left Recursive grammars, because it can create parsers for them with constant stack space, 
 --while Right Recursive grammars result in parsers with stack space proportional to the length of the list being parsed. 
 --Parser combinators however require Right Recursive grammars, because Left Recursive grammars cause infinite loops.
+
+--Exercise 5
+type ProgramAlgebra r = (Rules -> r)
+
+foldProgram :: ProgramAlgebra r -> Program -> r
+foldProgram (prog) (Program x) = prog x
+
+type RulesAlgebra r = (r, Rule -> r -> r)
+
+foldRules :: RulesAlgebra r -> Rules -> r
+
+type RuleAlgebra r = (Identifier -> Commands -> r)
+
+type CommandsAlgebra r = (r, Command -> r -> r)
+
+type CommandAlgebra r = (r, r, r, r, Direction -> r, Direction -> Alts -> r, Identifier -> r)
+
+type DirectionAlgebra r = (r, r, r)
+
+type AltsAlgebra r = (r, Alt -> r -> r)
+
+type AltAlgebra r = (Pat -> Commands -> r)
+
+type PatAlgebra r = (r, r, r, r, r, r)
+
+type IdentifierAlgebra r = (String -> r)
