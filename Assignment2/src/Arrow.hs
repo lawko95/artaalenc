@@ -61,32 +61,15 @@ contentsTable =
 --Parser combinators however require Right Recursive grammars, because Left Recursive grammars cause infinite loops.
 
 --Exercise 5
-type ProgramAlgebra r = (Rules -> r)
-
+type ProgramAlgebra r = ([Rule] -> r)
 foldProgram :: ProgramAlgebra r -> Program -> r
 foldProgram (program) (Program x) = program x
 
-type RulesAlgebra r = (r, Rule -> r -> r)
-
-foldRules :: RulesAlgebra r -> Rules -> r
-foldRules (norule, somerules) = f
-  where f NoRule = norule
-        f (SomeRules r rs) = somerules r (f rs)
-
-type RuleAlgebra r = (Identifier -> Commands -> r)
-
+type RuleAlgebra r = (Identifier -> [Command] -> r)
 foldRule :: RuleAlgebra r -> Rule -> r
 foldRule (rule) (Rule id cm) = rule id cm
 
-type CommandsAlgebra r = (r, Command -> r -> r)
-
-foldCommands :: CommandsAlgebra r -> Commands -> r
-foldCommands (nocommand, somecommands) = f
-  where f NoCommand = nocommand
-        f (SomeCommands cm cms) = somecommands cm (f cms)
-
-type CommandAlgebra r = (r, r, r, r, Direction -> r, Direction -> Alts -> r, Identifier -> r)
-
+type CommandAlgebra r = (r, r, r, r, Direction -> r, Direction -> [Alt] -> r, Identifier -> r)
 foldCommand :: CommandAlgebra r -> Command -> r
 foldCommand (gocommand, takecommand, markcommand, nothingcommand, turncommand, casecommand, rulecommand) = f
   where f GoCommand            = gocommand
@@ -98,22 +81,32 @@ foldCommand (gocommand, takecommand, markcommand, nothingcommand, turncommand, c
         f (RuleCommand id)     = rulecommand id
 
 type DirectionAlgebra r = (r, r, r)
-
 foldDirection :: DirectionAlgebra r -> Direction -> r
 foldDirection (left, right, front) = f
   where f LeftDir  = left
         f RightDir = right
         f FrontDir = front
 
-type AltsAlgebra r = (r, Alt -> r -> r)
-
-foldAlts :: AltsAlgebra r -> Alts -> r
-foldAlts (noalt, somealts) = f
-  where f NoAlt = noalt
-        f (SomeAlts a as) = somealts a (f as)
-
-type AltAlgebra r = (Pat -> Commands -> r)
+type AltAlgebra r = (Pat -> [Command] -> r)
+foldAlt :: AltAlgebra r -> Alt -> r 
+foldAlt (alt) (Alt p cms) = alt p cms
 
 type PatAlgebra r = (r, r, r, r, r, r)
+foldPat :: PatAlgebra r -> Pat -> r
+foldPat (empty, lambda, debris, asteroid, boundary, underscore) = f
+  where f EmptyPat = empty
+        f LambdaPat = lambda
+        f DebrisPat = debris
+        f AsteroidPat = asteroid
+        f BoundaryPat = boundary
+        f UnderscorePat = underscore
 
 type IdentifierAlgebra r = (String -> r)
+foldIdentifier :: IdentifierAlgebra r -> Identifier -> r
+foldIdentifier (string) = string
+
+-- Exercise 6
+check :: Program -> Bool
+check prog = True --Works everytime!
+
+-- Exercise 7

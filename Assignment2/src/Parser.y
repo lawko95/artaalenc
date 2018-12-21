@@ -37,14 +37,14 @@ import Scanner
 
 Program : Rules { Program $1 }
 
-Rules : {- empty -}         {NoRule}
-        | Rule Rules {SomeRules $1 $2}    
+Rules : {- empty -}         {[]}
+        | Rule Rules {$1 : $2}    
 
 Rule : PIdent PArrow Commands PDot {Rule $1 $3}
 
-Commands : {- empty -}               {NoCommand}
-           | Command                 {SomeCommands $1 NoCommand}
-           | Command PComma Commands {SomeCommands $1 $3}
+Commands : {- empty -}               {[]}
+           | Command                 {$1 : []}
+           | Command PComma Commands {$1 : $3}
 
 Command : PGo                             {GoCommand}
           | PTake                         {TakeCommand}
@@ -58,9 +58,9 @@ Direction : PLeft    {LeftDir}
             | PRight {RightDir}
             | PFront {FrontDir}
 
-Alts : {- empty -}           {NoAlt }
-       | Alt                 {SomeAlts $1 NoAlt}
-       | Alt PSemicolon Alts {SomeAlts $1 $3}
+Alts : {- empty -}           {[]}
+       | Alt                 {$1 : []}
+       | Alt PSemicolon Alts {$1 : $3}
 
 Alt : Pat PArrow Commands {Alt $1 $3}
 
@@ -78,28 +78,19 @@ parseError _ = error "Parse error"
 
 -- Exercise 2
 
-data Program = Program Rules 
+data Program = Program [Rule] 
   deriving (Show)
 
-data Rules = NoRule | SomeRules Rule Rules 
-  deriving (Show) 
-
-data Rule = Rule Identifier Commands
+data Rule = Rule Identifier [Command]
   deriving (Show)
 
-data Commands = NoCommand | SomeCommands Command Commands 
-  deriving (Show) 
-
-data Command = GoCommand | TakeCommand | MarkCommand | NothingCommand | TurnCommand Direction | CaseCommand Direction Alts | RuleCommand Identifier
+data Command = GoCommand | TakeCommand | MarkCommand | NothingCommand | TurnCommand Direction | CaseCommand Direction [Alt] | RuleCommand Identifier
   deriving (Show) 
 
 data Direction = LeftDir | RightDir | FrontDir
    deriving (Show)
 
-data Alts = NoAlt | SomeAlts Alt Alts 
-  deriving (Show) 
-
-data Alt = Alt Pat Commands
+data Alt = Alt Pat [Command]
   deriving (Show)
 
 data Pat = EmptyPat | LambdaPat | DebrisPat | AsteroidPat | BoundaryPat | UnderscorePat

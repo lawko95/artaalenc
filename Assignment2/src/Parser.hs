@@ -179,14 +179,14 @@ happyReduction_1 _  = notHappyAtAll
 
 happyReduce_2 = happySpecReduce_0  5 happyReduction_2
 happyReduction_2  =  HappyAbsSyn5
-		 (NoRule
+		 ([]
 	)
 
 happyReduce_3 = happySpecReduce_2  5 happyReduction_3
 happyReduction_3 (HappyAbsSyn5  happy_var_2)
 	(HappyAbsSyn6  happy_var_1)
 	 =  HappyAbsSyn5
-		 (SomeRules happy_var_1 happy_var_2
+		 (happy_var_1 : happy_var_2
 	)
 happyReduction_3 _ _  = notHappyAtAll 
 
@@ -202,13 +202,13 @@ happyReduction_4 (_ `HappyStk`
 
 happyReduce_5 = happySpecReduce_0  7 happyReduction_5
 happyReduction_5  =  HappyAbsSyn7
-		 (NoCommand
+		 ([]
 	)
 
 happyReduce_6 = happySpecReduce_1  7 happyReduction_6
 happyReduction_6 (HappyAbsSyn8  happy_var_1)
 	 =  HappyAbsSyn7
-		 (SomeCommands happy_var_1 NoCommand
+		 (happy_var_1 : []
 	)
 happyReduction_6 _  = notHappyAtAll 
 
@@ -217,7 +217,7 @@ happyReduction_7 (HappyAbsSyn7  happy_var_3)
 	_
 	(HappyAbsSyn8  happy_var_1)
 	 =  HappyAbsSyn7
-		 (SomeCommands happy_var_1 happy_var_3
+		 (happy_var_1 : happy_var_3
 	)
 happyReduction_7 _ _ _  = notHappyAtAll 
 
@@ -291,13 +291,13 @@ happyReduction_17 _
 
 happyReduce_18 = happySpecReduce_0  10 happyReduction_18
 happyReduction_18  =  HappyAbsSyn10
-		 (NoAlt
+		 ([]
 	)
 
 happyReduce_19 = happySpecReduce_1  10 happyReduction_19
 happyReduction_19 (HappyAbsSyn11  happy_var_1)
 	 =  HappyAbsSyn10
-		 (SomeAlts happy_var_1 NoAlt
+		 (happy_var_1 : []
 	)
 happyReduction_19 _  = notHappyAtAll 
 
@@ -306,7 +306,7 @@ happyReduction_20 (HappyAbsSyn10  happy_var_3)
 	_
 	(HappyAbsSyn11  happy_var_1)
 	 =  HappyAbsSyn10
-		 (SomeAlts happy_var_1 happy_var_3
+		 (happy_var_1 : happy_var_3
 	)
 happyReduction_20 _ _ _  = notHappyAtAll 
 
@@ -424,28 +424,19 @@ parseError _ = error "Parse error"
 
 -- Exercise 2
 
-data Program = Program Rules 
+data Program = Program [Rule] 
   deriving (Show)
 
-data Rules = NoRule | SomeRules Rule Rules 
-  deriving (Show) 
-
-data Rule = Rule Identifier Commands
+data Rule = Rule Identifier [Command]
   deriving (Show)
 
-data Commands = NoCommand | SomeCommands Command Commands 
-  deriving (Show) 
-
-data Command = GoCommand | TakeCommand | MarkCommand | NothingCommand | TurnCommand Direction | CaseCommand Direction Alts | RuleCommand Identifier
+data Command = GoCommand | TakeCommand | MarkCommand | NothingCommand | TurnCommand Direction | CaseCommand Direction [Alt] | RuleCommand Identifier
   deriving (Show) 
 
 data Direction = LeftDir | RightDir | FrontDir
    deriving (Show)
 
-data Alts = NoAlt | SomeAlts Alt Alts 
-  deriving (Show) 
-
-data Alt = Alt Pat Commands
+data Alt = Alt Pat [Command]
   deriving (Show)
 
 data Pat = EmptyPat | LambdaPat | DebrisPat | AsteroidPat | BoundaryPat | UnderscorePat
