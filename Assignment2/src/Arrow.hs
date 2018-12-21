@@ -6,6 +6,8 @@ import Data.Map (Map)
 import qualified Data.Map as L
 import Control.Monad (replicateM)
 import Data.Char (isSpace)
+import Parser
+
 
 --main :: IO()
 --main = undefined
@@ -52,3 +54,9 @@ data Step  =  Done  Space Pos Heading
            |  Ok    ArrowState
            |  Fail  String
 
+
+
+--Exercise 4
+--Happy prefers Left Recursive grammars, because it can create parsers for them with constant stack space, 
+--while Right Recursive grammars result in parsers with stack space proportional to the length of the list being parsed. 
+--Parser combinators however require Right Recursive grammars, because Left Recursive grammars cause infinite loops.
