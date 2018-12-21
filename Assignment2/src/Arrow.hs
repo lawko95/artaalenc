@@ -64,21 +64,53 @@ contentsTable =
 type ProgramAlgebra r = (Rules -> r)
 
 foldProgram :: ProgramAlgebra r -> Program -> r
-foldProgram (prog) (Program x) = prog x
+foldProgram (program) (Program x) = program x
 
 type RulesAlgebra r = (r, Rule -> r -> r)
 
 foldRules :: RulesAlgebra r -> Rules -> r
+foldRules (norule, somerules) = f
+  where f NoRule = norule
+        f (SomeRules r rs) = somerules r (f rs)
 
 type RuleAlgebra r = (Identifier -> Commands -> r)
 
+foldRule :: RuleAlgebra r -> Rule -> r
+foldRule (rule) (Rule id cm) = rule id cm
+
 type CommandsAlgebra r = (r, Command -> r -> r)
+
+foldCommands :: CommandsAlgebra r -> Commands -> r
+foldCommands (nocommand, somecommands) = f
+  where f NoCommand = nocommand
+        f (SomeCommands cm cms) = somecommands cm (f cms)
 
 type CommandAlgebra r = (r, r, r, r, Direction -> r, Direction -> Alts -> r, Identifier -> r)
 
+foldCommand :: CommandAlgebra r -> Command -> r
+foldCommand (gocommand, takecommand, markcommand, nothingcommand, turncommand, casecommand, rulecommand) = f
+  where f GoCommand            = gocommand
+        f TakeCommand          = takecommand
+        f MarkCommand          = markcommand
+        f NothingCommand       = nothingcommand
+        f (TurnCommand dir)    = turncommand dir
+        f (CaseCommand dir as) = casecommand dir as
+        f (RuleCommand id)     = rulecommand id
+
 type DirectionAlgebra r = (r, r, r)
 
+foldDirection :: DirectionAlgebra r -> Direction -> r
+foldDirection (left, right, front) = f
+  where f LeftDir  = left
+        f RightDir = right
+        f FrontDir = front
+
 type AltsAlgebra r = (r, Alt -> r -> r)
+
+foldAlts :: AltsAlgebra r -> Alts -> r
+foldAlts (noalt, somealts) = f
+  where f NoAlt = noalt
+        f (SomeAlts a as) = somealts a (f as)
 
 type AltAlgebra r = (Pat -> Commands -> r)
 
