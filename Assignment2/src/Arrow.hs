@@ -112,7 +112,7 @@ printSpace space = "(" ++ show maxWidth ++ "," ++ show maxHeight ++ ")\n" ++
         maxHeight = foldr (\((y,_),_) rest -> max y rest) 0 spaceList 
         spaceList = L.toList space
 
-run :: Parser a b -> [a] -> Maybe b -- From assignment, for testing the printer
+run :: Parser a b -> [a] -> Maybe b -- From assignment 1, for testing the printer
 run parser str = case result of
              ((r,_):_) -> Just r
              _         -> Nothing
@@ -137,17 +137,22 @@ data Heading     = LeftHead | RightHead | FrontHead | BackHead deriving Eq
 type Stack       =  [Command]
 data ArrowState  =  ArrowState Space Pos Heading Stack
 
-data Step  =  Done  Space Pos Direction
+data Step  =  Done  Space Pos Heading
            |  Ok    ArrowState
            |  Fail  String
 
 step :: Environment -> ArrowState -> Step
-step env state@(ArrowState space pos heading stack@(x:xs)) = case x of 
+step env state@(ArrowState space pos heading stack@(x:xs)) = case stack of 
+                                                             [] -> Done space pos heading -- empty command stack
+                                                             (x:xs) -> case x of
                                                                GoCommand -> goStep state
                                                                TakeCommand -> takeStep state
                                                                MarkCommand -> markStep state
                                                                NothingCommand -> nothingStep state
                                                                TurnCommand dir -> turnStep state dir
+                                                               CaseCommand dir alts -> caseStep state dir alts
+                                                               RuleCommand id -> ruleStep env state id
+
 
 goStep :: ArrowState -> Step
 goStep state@(ArrowState space oldPos@(y,x) heading (cmd:cds)) | heading == LeftHead = returnGoStep (y,x-1) LeftHead (L.lookup (y, x-1) space) 
@@ -181,3 +186,10 @@ turnStep state@(ArrowState space pos heading (cmd:cmds)) dir = Ok (ArrowState sp
         newHeading BackHead LeftDir   = RightHead
         newHeading BackHead RightDir  = LeftHead
 
+caseStep :: ArrowState -> Direction -> [Alt] -> Step
+caseStep = undefined
+
+ruleStep :: Environment -> ArrowState -> Identifier -> Step
+ruleStep env state@(ArrowState space pos heading (cmd:cmds)) id = returnRuleStep (L.lookup id env) 
+  where returnRuleStep Nothing = Fail "The rule is not defined"
+        returnRuleStep (Just x) = Ok (ArrowState space pos heading (x++cmds))
