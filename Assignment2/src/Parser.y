@@ -10,28 +10,28 @@ import Scanner
 
 
 %token
-    PArrow { Arrow }
-    PDot  { Dot }
-    PComma {Comma}
-    PGo {Go}
-    PTake {Take}
-    PMark {Mark}
-    PNothing {Nothingg}
-    PTurn {Turn}
-    PCase {Case}
-    POf {Of}
-    PEnd {End}
-    PLeft {Leftt}
-    PRight {Rightt}
-    PFront {Front}
-    PSemicolon {Semicolon}
-    PEmpty {Empty}
-    PLambda {Lambda}
-    PDebris {Debris}
-    PAsteroid {Asteroid}
-    PBoundary {Boundary}
-    PUnderscore {Underscore}
-    PIdent {Ident $$}
+    PArrow { TArrow }
+    PDot  { TDot }
+    PComma {TComma}
+    PGo {TGo}
+    PTake {TTake}
+    PMark {TMark}
+    PNothing {TNothing}
+    PTurn {TTurn}
+    PCase {TCase}
+    POf {TOf}
+    PEnd {TEnd}
+    PLeft {TLeft}
+    PRight {TRight}
+    PFront {TFront}
+    PSemicolon {TSemicolon}
+    PEmpty {TEmpty}
+    PLambda {TLambda}
+    PDebris {TDebris}
+    PAsteroid {TAsteroid}
+    PBoundary {TBoundary}
+    PUnderscore {TUnderscore}
+    PIdent {TIdent $$}
 
 %%
 
@@ -48,7 +48,7 @@ Commands : {- empty -}               {NoCommand}
 
 Command : PGo                             {GoCommand}
           | PTake                         {TakeCommand}
-          | PMark                         {MarkComand}
+          | PMark                         {MarkCommand}
           | PNothing                      {NothingCommand}
           | PTurn Direction               {TurnCommand $2}
           | PCase Direction POf Alts PEnd {CaseCommand $2 $4}
@@ -70,9 +70,6 @@ Pat : PEmpty {EmptyPat}
       | PAsteroid {AsteroidPat}
       | PBoundary {BoundaryPat}
       | PUnderscore {UnderscorePat}
-
-Identifier : PIdent {Identifier $1}
-
 
 {
 
@@ -108,7 +105,6 @@ data Alt = Alt Pat Commands
 data Pat = EmptyPat | LambdaPat | DebrisPat | AsteroidPat | BoundaryPat | UnderscorePat
   deriving (Show)
 
-data Identifier = Identifier String
-   deriving (Show)
+type Identifier = String
 
 }

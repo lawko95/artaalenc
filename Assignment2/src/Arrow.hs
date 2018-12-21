@@ -7,6 +7,7 @@ import qualified Data.Map as L
 import Control.Monad (replicateM)
 import Data.Char (isSpace)
 import Parser
+import Scanner
 
 
 --main :: IO()
@@ -41,18 +42,18 @@ contentsTable =
   [  (Empty,'.'),(Lambda,'\\'),(Debris,'%'),(Asteroid,'O'),(Boundary,'#')]
 
 -- These three should be defined by you
-type Ident = ()
-type Commands = ()
-type Heading = ()
+-- type Ident = ()
+-- type Commands = ()
+-- type Heading = ()
 
-type Environment = Map Ident Commands
+-- type Environment = Map Ident Commands
 
-type Stack       =  Commands
-data ArrowState  =  ArrowState Space Pos Heading Stack
+-- type Stack       =  Commands
+-- data ArrowState  =  ArrowState Space Pos Heading Stack
 
-data Step  =  Done  Space Pos Heading
-           |  Ok    ArrowState
-           |  Fail  String
+-- data Step  =  Done  Space Pos Heading
+--            |  Ok    ArrowState
+--            |  Fail  String
 
 --Exercise 4
 --Happy prefers Left Recursive grammars, because it can create parsers for them with constant stack space, 

@@ -2,8 +2,7 @@
 {-# LANGUAGE CPP #-}
 {-# LINE 1 "Scanner.x" #-}
 
-module Scanner (main) where
-
+module Scanner where
 
 #if __GLASGOW_HASKELL__ >= 603
 #include "ghcconfig.h"
@@ -346,41 +345,41 @@ alex_accept = listArray (0::Int,94) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAcc
 
 alex_actions = array (0::Int,83) [(82,alex_action_2),(81,alex_action_3),(80,alex_action_4),(79,alex_action_5),(78,alex_action_6),(77,alex_action_7),(76,alex_action_8),(75,alex_action_9),(74,alex_action_10),(73,alex_action_11),(72,alex_action_12),(71,alex_action_13),(70,alex_action_14),(69,alex_action_15),(68,alex_action_16),(67,alex_action_17),(66,alex_action_18),(65,alex_action_19),(64,alex_action_20),(63,alex_action_21),(62,alex_action_22),(61,alex_action_23),(60,alex_action_23),(59,alex_action_23),(58,alex_action_23),(57,alex_action_23),(56,alex_action_23),(55,alex_action_23),(54,alex_action_23),(53,alex_action_23),(52,alex_action_23),(51,alex_action_23),(50,alex_action_23),(49,alex_action_23),(48,alex_action_23),(47,alex_action_23),(46,alex_action_23),(45,alex_action_23),(44,alex_action_23),(43,alex_action_23),(42,alex_action_23),(41,alex_action_23),(40,alex_action_23),(39,alex_action_23),(38,alex_action_23),(37,alex_action_23),(36,alex_action_23),(35,alex_action_23),(34,alex_action_23),(33,alex_action_23),(32,alex_action_23),(31,alex_action_23),(30,alex_action_23),(29,alex_action_23),(28,alex_action_23),(27,alex_action_23),(26,alex_action_23),(25,alex_action_23),(24,alex_action_23),(23,alex_action_23),(22,alex_action_23),(21,alex_action_23),(20,alex_action_23),(19,alex_action_23),(18,alex_action_23),(17,alex_action_23),(16,alex_action_23),(15,alex_action_23),(14,alex_action_23),(13,alex_action_23),(12,alex_action_23),(11,alex_action_23),(10,alex_action_23),(9,alex_action_23),(8,alex_action_23),(7,alex_action_23),(6,alex_action_23),(5,alex_action_23),(4,alex_action_23),(3,alex_action_23),(2,alex_action_23),(1,alex_action_23),(0,alex_action_23)]
 
-{-# LINE 36 "Scanner.x" #-}
+{-# LINE 35 "Scanner.x" #-}
 
 -- Each action has type :: String -> Token
 
 -- The token type:
-data Token =    Arrow | Dot | Comma | Go | Take | Mark | Nothingg | Turn | Case | Of | End | Leftt | Rightt | Front | Semicolon 
-                | Empty | Lambda | Debris | Asteroid | Boundary | Underscore | Ident String
-	deriving (Eq,Show)
+data Token =    TArrow | TDot | TComma | TGo | TTake | TMark | TNothing | TTurn | TCase | TOf | TEnd | TLeft | TRight | TFront | TSemicolon 
+                | TEmpty | TLambda | TDebris | TAsteroid | TBoundary | TUnderscore | TIdent String
+  deriving (Eq,Show)
 
 main = do
   s <- getContents
   print (alexScanTokens s)
 
-alex_action_2 = \s->Arrow
-alex_action_3 = \s->Dot
-alex_action_4 = \s->Comma
-alex_action_5 = \s->Go
-alex_action_6 = \s->Take
-alex_action_7 = \s->Mark
-alex_action_8 = \s->Nothingg
-alex_action_9 = \s->Turn
-alex_action_10 = \s->Case
-alex_action_11 = \s->Of
-alex_action_12 = \s->End
-alex_action_13 = \s->Leftt
-alex_action_14 = \s->Rightt
-alex_action_15 = \s->Front
-alex_action_16 = \s->Semicolon
-alex_action_17 = \s->Empty
-alex_action_18 = \s->Lambda
-alex_action_19 = \s->Debris
-alex_action_20 = \s->Asteroid
-alex_action_21 = \s->Boundary
-alex_action_22 = \s->Underscore
-alex_action_23 = \s->Ident s
+alex_action_2 = \s->TArrow
+alex_action_3 = \s->TDot
+alex_action_4 = \s->TComma
+alex_action_5 = \s->TGo
+alex_action_6 = \s->TTake
+alex_action_7 = \s->TMark
+alex_action_8 = \s->TNothing
+alex_action_9 = \s->TTurn
+alex_action_10 = \s->TCase
+alex_action_11 = \s->TOf
+alex_action_12 = \s->TEnd
+alex_action_13 = \s->TLeft
+alex_action_14 = \s->TRight
+alex_action_15 = \s->TFront
+alex_action_16 = \s->TSemicolon
+alex_action_17 = \s->TEmpty
+alex_action_18 = \s->TLambda
+alex_action_19 = \s->TDebris
+alex_action_20 = \s->TAsteroid
+alex_action_21 = \s->TBoundary
+alex_action_22 = \s->TUnderscore
+alex_action_23 = \s->TIdent s
 {-# LINE 1 "templates\GenericTemplate.hs" #-}
 {-# LINE 1 "templates\\GenericTemplate.hs" #-}
 {-# LINE 1 "<built-in>" #-}

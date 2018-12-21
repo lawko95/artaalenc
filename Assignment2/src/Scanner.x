@@ -1,7 +1,5 @@
 {
-module Scanner (main
-               , Token(..)) where
-
+module Scanner where
 }
 
 %wrapper "basic"
@@ -12,35 +10,35 @@ tokens :-
 
   $white+				    ;
   "--".*				    ;
-  \->                       {\s->Arrow}
-  \.                        {\s->Dot}
-  \,                        {\s->Comma}
-  go                        {\s->Go}
-  take                      {\s->Take}
-  mark                      {\s->Mark}
-  nothing                   {\s->Nothingg}
-  turn                      {\s->Turn}
-  case                      {\s->Case}
-  of                        {\s->Of}
-  end                       {\s->End}
-  left                      {\s->Leftt}
-  right                     {\s->Rightt}
-  front                     {\s->Front}
-  \;                        {\s->Semicolon}
-  Empty                     {\s->Empty}
-  Lambda                    {\s->Lambda}
-  Debris                    {\s->Debris}
-  Asteroid                  {\s->Asteroid}
-  Boundary                  {\s->Boundary}
-  \_                        {\s->Underscore}
-  [$alpha $digit \+ \-]+    {\s->Ident s}
+  \->                       {\s->TArrow}
+  \.                        {\s->TDot}
+  \,                        {\s->TComma}
+  go                        {\s->TGo}
+  take                      {\s->TTake}
+  mark                      {\s->TMark}
+  nothing                   {\s->TNothing}
+  turn                      {\s->TTurn}
+  case                      {\s->TCase}
+  of                        {\s->TOf}
+  end                       {\s->TEnd}
+  left                      {\s->TLeft}
+  right                     {\s->TRight}
+  front                     {\s->TFront}
+  \;                        {\s->TSemicolon}
+  Empty                     {\s->TEmpty}
+  Lambda                    {\s->TLambda}
+  Debris                    {\s->TDebris}
+  Asteroid                  {\s->TAsteroid}
+  Boundary                  {\s->TBoundary}
+  \_                        {\s->TUnderscore}
+  [$alpha $digit \+ \-]+    {\s->TIdent s}
 {
 -- Each action has type :: String -> Token
 
 -- The token type:
-data Token =    Arrow | Dot | Comma | Go | Take | Mark | Nothingg | Turn | Case | Of | End | Leftt | Rightt | Front | Semicolon 
-                | Empty | Lambda | Debris | Asteroid | Boundary | Underscore | Ident String
-	deriving (Eq,Show)
+data Token =    TArrow | TDot | TComma | TGo | TTake | TMark | TNothing | TTurn | TCase | TOf | TEnd | TLeft | TRight | TFront | TSemicolon 
+                | TEmpty | TLambda | TDebris | TAsteroid | TBoundary | TUnderscore | TIdent String
+  deriving (Eq,Show)
 
 main = do
   s <- getContents
