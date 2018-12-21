@@ -120,3 +120,9 @@ printSpace space = "(" ++ show maxWidth ++ "," ++ show maxHeight ++ ")\n" ++
   where maxWidth  = foldr (\((_,x),_) rest -> max x rest) 0 spaceList 
         maxHeight = foldr (\((y,_),_) rest -> max y rest) 0 spaceList 
         spaceList = L.toList space
+
+run :: Parser a b -> [a] -> Maybe b
+run parser str = case result of
+             ((r,_):_) -> Just r
+             _         -> Nothing
+    where result = parse parser str
