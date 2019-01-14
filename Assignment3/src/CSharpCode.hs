@@ -54,6 +54,9 @@ fStatBlock = concat
 
 fExprCon :: Token -> ValueOrAddress -> Code
 fExprCon (ConstInt n) va = [LDC n]
+fExprCon (ConstChar c) va = [LDC (ord c)]
+fExprCon (ConstBool True) va = [LDC 1]
+fExprCon (ConstBool _) va = [LDC 0]
 
 fExprVar :: Token -> ValueOrAddress -> Code
 fExprVar (LowerId x) va = let loc = 37 in case va of
