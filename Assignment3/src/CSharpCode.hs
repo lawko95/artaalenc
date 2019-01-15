@@ -6,6 +6,7 @@ import CSharpLex
 import CSharpGram
 import CSharpAlgebra
 import SSM
+import Data.Char
 
 
 data ValueOrAddress = Value | Address
@@ -73,4 +74,5 @@ opCodes = fromList [ ("+", ADD), ("-", SUB),  ("*", MUL), ("/", DIV), ("%", MOD)
                    , ("<=", LE), (">=", GE),  ("<", LT),  (">", GT),  ("==", EQ)
                    , ("!=", NE), ("&&", AND), ("||", OR), ("^", XOR)
                    ]
+
 

@@ -1,0 +1,7 @@
+testexpressie:
+
+[ConstInt 5, Operator "+", ConstInt 5, Operator "+", ConstInt 6, Operator "*", ConstInt 3]
+
+
+token testlijst voor task 5:
+[KeyFor, POpen, 

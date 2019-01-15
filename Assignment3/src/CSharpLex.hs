@@ -11,7 +11,7 @@ data Token = POpen    | PClose      -- parentheses     ()
            | COpen    | CClose      -- curly braces    {}
            | Comma    | Semicolon
            | KeyIf    | KeyElse
-           | KeyWhile | KeyReturn
+           | KeyWhile | KeyFor | KeyReturn
            | KeyTry   | KeyCatch
            | KeyClass | KeyVoid
            | StdType   String       -- the 8 standard types
@@ -48,6 +48,7 @@ terminals =
     , ( KeyIf     , "if"     )
     , ( KeyElse   , "else"   )
     , ( KeyWhile  , "while"  )
+    , ( KeyFor    , "For"    )
     , ( KeyReturn , "return" )
     , ( KeyTry    , "try"    )
     , ( KeyCatch  , "catch"  )
@@ -129,12 +130,6 @@ sConst  = satisfy isConst
           isConst (ConstBool _) = True
           isConst (ConstChar _) = True
           isConst _             = False
-
-sOperator :: Parser Token Token
-sOperator = satisfy isOperator
-    where isOperator (Operator _) = True
-          isOperator _            = False
-
 
 sSemi :: Parser Token Token
 sSemi =  symbol Semicolon

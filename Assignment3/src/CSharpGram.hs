@@ -16,6 +16,7 @@ data Stat = StatDecl   Decl
           | StatExpr   Expr
           | StatIf     Expr Stat Stat
           | StatWhile  Expr Stat
+          | StatFor    Decl Expr Stat 
           | StatReturn Expr
           | StatBlock  [Stat]
           deriving Show
@@ -44,8 +45,56 @@ pExprSimple =  ExprConst <$> sConst
            <|> ExprVar   <$> sLowerId
            <|> parenthesised pExpr
 
+-- Task 2
+multis :: Parser Token Expr
+multis = chainl pExprSimple (ExprOper <$> sOperator7)
+
+addis :: Parser Token Expr
+addis = chainl multis (ExprOper <$> sOperator6)
+
+comparis :: Parser Token Expr
+comparis = chainl addis (ExprOper <$> sOperator4)
+
+andis :: Parser Token Expr
+andis = chainl comparis (ExprOper <$> sOperator3)
+
+oris :: Parser Token Expr
+oris = chainl andis (ExprOper <$> sOperator2)
+
+-- Chainr to make the assignment operator right-associative (Task 4)
 pExpr :: Parser Token Expr
-pExpr = chainr pExprSimple (ExprOper <$> sOperator)
+pExpr = chainr oris (ExprOper <$> sOperator1)
+
+sOperator7 :: Parser Token Token 
+sOperator7 = satisfy isOperator7
+  where isOperator7 (Operator x) = elem x multis
+        multis = ["*", "/", "%"]
+        
+sOperator6 :: Parser Token Token 
+sOperator6 = satisfy isOperator6
+  where isOperator6 (Operator x) = elem x addis
+        addis = ["+","-"]
+
+sOperator4 :: Parser Token Token 
+sOperator4 = satisfy isOperator4
+  where isOperator4 (Operator x) = elem x comparis
+        comparis = ["<=", "<", ">=", ">", "==", "!=", "="]
+
+sOperator3 :: Parser Token Token 
+sOperator3 = satisfy isOperator3
+  where isOperator3 (Operator x) = elem x andis
+        andis = ["&&"]
+
+sOperator2 :: Parser Token Token 
+sOperator2 = satisfy isOperator2
+  where isOperator2 (Operator x) = elem x oris
+        oris = ["||", "^"]
+
+sOperator1 :: Parser Token Token
+sOperator1 = satisfy isOperator1
+  where isOperator1 (Operator "=") = True
+        isOperator1 _             = False
+
 
 
 pMember :: Parser Token Member
@@ -56,14 +105,20 @@ pStatDecl :: Parser Token Stat
 pStatDecl =  pStat
          <|> StatDecl <$> pDeclSemi
 
+
+-- Task 5
 pStat :: Parser Token Stat
 pStat =  StatExpr <$> pExpr <*  sSemi
      <|> StatIf     <$ symbol KeyIf     <*> parenthesised pExpr <*> pStat <*> optionalElse
-     <|> StatWhile  <$ symbol KeyWhile  <*> parenthesised pExpr <*> pStat
+     <|> StatWhile  <$ symbol KeyWhile  <*> parenthesised pExpr <*> pStat 
+     <|> (\(StatFor d e s) -> StatBlock ((StatDecl d) : [StatWhile e s])) <$> pFor
      <|> StatReturn <$ symbol KeyReturn <*> pExpr               <*  sSemi
      <|> pBlock
-     where optionalElse = option ((\_ x -> x) <$> symbol KeyElse <*> pStat) (StatBlock [])
+    where optionalElse = option ((\_ x -> x) <$> symbol KeyElse <*> pStat) (StatBlock [])
 
+-- Task 5
+pFor :: Parser Token Stat
+pFor = StatFor <$ symbol KeyFor <* symbol POpen <*> pDecl <* sSemi <*> pExpr <* sSemi <*> ((\s ss -> StatBlock (s : [ss])) <$> pStat <* symbol PClose <*> pStat)
 
 pBlock :: Parser Token Stat
 pBlock = StatBlock <$> braced (many pStatDecl)
