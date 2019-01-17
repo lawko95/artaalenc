@@ -64,13 +64,18 @@ fExprVar (LowerId x) va = let loc = 37 in case va of
                                               Value    ->  [LDL  loc]
                                               Address  ->  [LDLA loc]
 
+-- Task 7
 fExprOp :: Token -> (ValueOrAddress -> Code) -> (ValueOrAddress -> Code) -> ValueOrAddress -> Code
 fExprOp (Operator "=") e1 e2 va = e2 Value ++ [LDS 0] ++ e1 Address ++ [STA 0]
+fExprOp (Operator "&&") e1 e2 va = e2 Value ++ e1 Value ++ [BRF (codeSize (e2 Value))]
+--fExprOp (Operator "||") e1 e2 va = e1 Value ++ [BRT iets] ++ e2 Value
 fExprOp (Operator op)  e1 e2 va = e1 Value ++ e2 Value ++ [opCodes ! op]
 
--- Task 6
+-- Tasks 6 and 8
 fExprMethPar :: Token -> [ValueOrAddress -> Code] -> ValueOrAddress -> Code
-fExprMethPar (LowerId x) exprs va = undefined
+fExprMethPar (LowerId "print") exprs va = concat (Prelude.map (\e -> e va ++ [TRAP 0]) exprs)
+fExprMethPar (LowerId x) exprs va = concat (Prelude.map (\e -> e va) exprs) ++ [Bsr x]
+
 
 opCodes :: Map String Instr
 opCodes = fromList [ ("+", ADD), ("-", SUB),  ("*", MUL), ("/", DIV), ("%", MOD)
