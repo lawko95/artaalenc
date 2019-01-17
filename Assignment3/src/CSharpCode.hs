@@ -17,7 +17,7 @@ codeAlgebra =
     ( fClas
     , (fMembDecl, fMembMeth)
     , (fStatDecl, fStatExpr, fStatIf, fStatWhile, fStatReturn, fStatBlock)
-    , (fExprCon, fExprVar, fExprOp)
+    , (fExprCon, fExprVar, fExprOp, fExprMethPar)
     )
 
 fClas :: Token -> [Code] -> Code
@@ -68,6 +68,9 @@ fExprOp :: Token -> (ValueOrAddress -> Code) -> (ValueOrAddress -> Code) -> Valu
 fExprOp (Operator "=") e1 e2 va = e2 Value ++ [LDS 0] ++ e1 Address ++ [STA 0]
 fExprOp (Operator op)  e1 e2 va = e1 Value ++ e2 Value ++ [opCodes ! op]
 
+-- Task 6
+fExprMethPar :: Token -> [ValueOrAddress -> Code] -> ValueOrAddress -> Code
+fExprMethPar (LowerId x) exprs va = undefined
 
 opCodes :: Map String Instr
 opCodes = fromList [ ("+", ADD), ("-", SUB),  ("*", MUL), ("/", DIV), ("%", MOD)

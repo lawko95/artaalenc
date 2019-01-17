@@ -21,13 +21,15 @@ data Stat = StatDecl   Decl
           | StatBlock  [Stat]
           deriving Show
 
+-- Task 6
 data Expr = ExprConst  Token
           | ExprVar    Token
           | ExprOper   Token Expr Expr
+          | ExprMethPar Token [Expr]
           deriving Show
 
 data Decl = Decl Type Token
-    deriving Show
+    deriving Show   
 
 data Type = TypeVoid
           | TypePrim  Token
@@ -44,6 +46,13 @@ pExprSimple :: Parser Token Expr
 pExprSimple =  ExprConst <$> sConst
            <|> ExprVar   <$> sLowerId
            <|> parenthesised pExpr
+
+pAllExpr :: Parser Token Expr
+pAllExpr = pExprSimple <|> pExpr
+  
+-- Task 6
+pExprMethPar :: Parser Token Expr
+pExprMethPar = ExprMethPar <$> sLowerId <*> parenthesised (option (listOf pAllExpr (symbol Comma)) [])
 
 -- Task 2
 multis :: Parser Token Expr
