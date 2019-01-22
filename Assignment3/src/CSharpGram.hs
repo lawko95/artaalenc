@@ -70,6 +70,8 @@ andis = chainl comparis (ExprOper <$> sOperator3)
 oris :: Parser Token Expr
 oris = chainl andis (ExprOper <$> sOperator2)
 
+--moet nog voor non-exhaustive maken dus een geval zonder operator ofso isOperator7 _ = error "wtf"
+
 -- Chainr to make the assignment operator right-associative (Task 4)
 pExpr :: Parser Token Expr
 pExpr = chainr oris (ExprOper <$> sOperator1)
@@ -77,32 +79,37 @@ pExpr = chainr oris (ExprOper <$> sOperator1)
 sOperator7 :: Parser Token Token 
 sOperator7 = satisfy isOperator7
   where isOperator7 (Operator x) = elem x multis
+        isOperator7   _          = False
         multis = ["*", "/", "%"]
         
 sOperator6 :: Parser Token Token 
 sOperator6 = satisfy isOperator6
   where isOperator6 (Operator x) = elem x addis
+        isOperator6 _            = False
         addis = ["+","-"]
 
 sOperator4 :: Parser Token Token 
 sOperator4 = satisfy isOperator4
   where isOperator4 (Operator x) = elem x comparis
+        isOperator4 _            = False
         comparis = ["<=", "<", ">=", ">", "==", "!=", "="]
 
 sOperator3 :: Parser Token Token 
 sOperator3 = satisfy isOperator3
   where isOperator3 (Operator x) = elem x andis
+        isOperator3 _            = False
         andis = ["&&"]
 
 sOperator2 :: Parser Token Token 
 sOperator2 = satisfy isOperator2
   where isOperator2 (Operator x) = elem x oris
+        isOperator2 _            = False
         oris = ["||", "^"]
 
 sOperator1 :: Parser Token Token
 sOperator1 = satisfy isOperator1
   where isOperator1 (Operator "=") = True
-        isOperator1 _             = False
+        isOperator1 _              = False
 
 
 

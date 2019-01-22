@@ -12,7 +12,9 @@ import Data.Char
 data ValueOrAddress = Value | Address
     deriving Show
 
-codeAlgebra :: CSharpAlgebra Code Code Code (ValueOrAddress -> Code)
+type Environment = Map String Int 
+
+codeAlgebra :: CSharpAlgebra Code Code (Environment -> Code) (ValueOrAddress -> Environment -> Code)
 codeAlgebra =
     ( fClas
     , (fMembDecl, fMembMeth)
@@ -26,55 +28,71 @@ fClas c ms = [Bsr "main", HALT] ++ concat ms
 fMembDecl :: Decl -> Code
 fMembDecl d = []
 
-fMembMeth :: Type -> Token -> [Decl] -> Code -> Code
-fMembMeth t (LowerId x) ps s = [LABEL x] ++ s ++ [RET]
+fMembMeth :: Type -> Token -> [Decl] -> (Environment -> Code) -> Code
+fMembMeth t (LowerId x) ps s = [LABEL x] ++ s env ++ [RET]
+    where env                           =  fromList(pairMaker)
+          pairMaker                     =  zip (pairKeys)(pairValues)
+          pairValues                    = [-length ps..]
+          pairKeys                      = Prelude.map getKey ps 
+          getKey (Decl _ (LowerId key)) = key
+          
+-- zip
+--[-7..]
+--Decl Token (LowerId x) -> x
+--x -> ((x,-(length ps))
+---7 -6 ... -1
+--  -7  [x, -7]
+--fromList [(x, -7), (y, -6)] -- maakt environment
+--(-10, -9)
+--zip (ps)
 
-fStatDecl :: Decl -> Code
-fStatDecl d = []
+fStatDecl :: Decl -> Environment -> Code
+fStatDecl env d = []
 
-fStatExpr :: (ValueOrAddress -> Code) -> Code
-fStatExpr e = e Value ++ [pop]
+fStatExpr :: (ValueOrAddress -> Environment -> Code) -> Environment -> Code
+fStatExpr e env = e Value env ++ [pop]
 
-fStatIf :: (ValueOrAddress -> Code) -> Code -> Code -> Code
-fStatIf e s1 s2 = c ++ [BRF (n1 + 2)] ++ s1 ++ [BRA n2] ++ s2
-    where
-        c        = e Value
-        (n1, n2) = (codeSize s1, codeSize s2)
+fStatIf :: (ValueOrAddress -> Environment -> Code) -> (Environment -> Code) -> (Environment -> Code) -> Environment -> Code
+fStatIf e s1 s2 env = c ++ [BRF (n1 + 2)] ++ s1 env ++ [BRA n2] ++ s2 env
+                where c        = e Value env 
+                      (n1, n2) = (codeSize (s1 env), codeSize (s2 env))
 
-fStatWhile :: (ValueOrAddress -> Code) -> Code -> Code
-fStatWhile e s1 = [BRA n] ++ s1 ++ c ++ [BRT (-(n + k + 2))]
-    where
-        c = e Value
-        (n, k) = (codeSize s1, codeSize c)
+fStatWhile :: (ValueOrAddress -> Environment -> Code) -> (Environment -> Code) -> Environment -> Code
+fStatWhile e s1 env = [BRA n] ++ s1 env ++ c ++ [BRT (-(n + k + 2))]
+                where  c      = e Value env
+                       (n, k) = (codeSize (s1 env), codeSize c)    
 
-fStatReturn :: (ValueOrAddress -> Code) -> Code
-fStatReturn e = e Value ++ [pop] ++ [RET]
+fStatReturn :: (ValueOrAddress -> Environment -> Code) -> Environment -> Code
+fStatReturn e env = e Value env ++ [pop] ++ [RET]
 
-fStatBlock :: [Code] -> Code
-fStatBlock = concat
+fStatBlock :: [Environment -> Code] -> Environment -> Code
+fStatBlock cod env = concatMap (\e -> e env) cod 
 
-fExprCon :: Token -> ValueOrAddress -> Code
-fExprCon (ConstInt n) va = [LDC n]
-fExprCon (ConstChar c) va = [LDC (ord c)]
-fExprCon (ConstBool True) va = [LDC 1]
-fExprCon (ConstBool _) va = [LDC 0]
+fExprCon :: Token -> ValueOrAddress -> Environment -> Code
+fExprCon (ConstInt n) _ _     = [LDC n]
+fExprCon (ConstChar c) _ _    = [LDC (ord c)]
+fExprCon (ConstBool True) _ _ = [LDC 1]
+fExprCon (ConstBool _) _ _    = [LDC 0]
 
-fExprVar :: Token -> ValueOrAddress -> Code
-fExprVar (LowerId x) va = let loc = 37 in case va of
+fExprVar :: Token -> ValueOrAddress -> Environment -> Code
+fExprVar (LowerId x) va env = let loc = env ! x in case va of
                                               Value    ->  [LDL  loc]
                                               Address  ->  [LDLA loc]
 
 -- Task 7
-fExprOp :: Token -> (ValueOrAddress -> Code) -> (ValueOrAddress -> Code) -> ValueOrAddress -> Code
-fExprOp (Operator "=") e1 e2 va = e2 Value ++ [LDS 0] ++ e1 Address ++ [STA 0]
-fExprOp (Operator "&&") e1 e2 va = e2 Value ++ e1 Value ++ [BRF (codeSize (e2 Value))]
+fExprOp :: Token -> (ValueOrAddress -> Environment -> Code) -> (ValueOrAddress -> Environment -> Code) -> ValueOrAddress -> Environment -> Code
+fExprOp (Operator "=") e1 e2 va env  = e2 Value env ++ [LDS 0] ++ e1 Address env ++ [STA 0]
+fExprOp (Operator "&&") e1 e2 va env = e1 Value env ++ e1 Value env ++ [BRF (codeSize code)] ++ code
+                          where code = e2 Value env ++ [AND]
+fExprOp (Operator "||") e1 e2 va env = e1 Value env ++ e1 Value env ++ [BRT (codeSize code)] ++ code
+                          where code = e2 Value env ++ [OR]
 --fExprOp (Operator "||") e1 e2 va = e1 Value ++ [BRT iets] ++ e2 Value
-fExprOp (Operator op)  e1 e2 va = e1 Value ++ e2 Value ++ [opCodes ! op]
+fExprOp (Operator op)   e1 e2 va env = e1 Value env ++ e2 Value env ++ [opCodes ! op]
 
 -- Tasks 6 and 8
-fExprMethPar :: Token -> [ValueOrAddress -> Code] -> ValueOrAddress -> Code
-fExprMethPar (LowerId "print") exprs va = concat (Prelude.map (\e -> e va ++ [TRAP 0]) exprs)
-fExprMethPar (LowerId x) exprs va = concat (Prelude.map (\e -> e va) exprs) ++ [Bsr x]
+fExprMethPar :: Token -> [ValueOrAddress -> Environment -> Code] -> ValueOrAddress -> Environment -> Code
+fExprMethPar (LowerId "print") exprs va env = concat (Prelude.map (\e -> e va env ++ [TRAP 0]) exprs)
+fExprMethPar (LowerId x) exprs va env = concat (Prelude.map (\e -> e va env) exprs) ++ [Bsr x]
 
 
 opCodes :: Map String Instr
