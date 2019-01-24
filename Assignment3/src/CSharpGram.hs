@@ -45,6 +45,7 @@ braced        p = pack (symbol COpen) p (symbol CClose)
 pExprSimple :: Parser Token Expr
 pExprSimple =  ExprConst <$> sConst
            <|> ExprVar   <$> sLowerId
+           <|> pExprMethPar
            <|> parenthesised pExpr
 
 pAllExpr :: Parser Token Expr
@@ -52,7 +53,7 @@ pAllExpr = pExprSimple <|> pExpr
   
 -- Task 6
 pExprMethPar :: Parser Token Expr
-pExprMethPar = ExprMethPar <$> sLowerId <*> parenthesised (option (listOf pAllExpr (symbol Comma)) [])
+pExprMethPar = ExprMethPar <$> sLowerId <*> parenthesised (option (listOf pExpr (symbol Comma)) [])
 
 -- Task 2
 multis :: Parser Token Expr

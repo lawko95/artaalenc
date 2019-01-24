@@ -29,13 +29,13 @@ fMembDecl :: Decl -> Code
 fMembDecl d = []
 
 fMembMeth :: Type -> Token -> [Decl] -> (Environment -> Code) -> Code
-fMembMeth t (LowerId x) ps s = [LABEL x] ++ s env ++ [RET]
+fMembMeth t (LowerId x) ps s = [LABEL x] ++ [LINK 0] ++ s env ++ [UNLINK] ++ [RET]
     where env                           =  fromList(pairMaker)
           pairMaker                     =  zip (pairKeys)(pairValues)
-          pairValues                    = [-length ps..]
+          pairValues                    = [((-length ps)-1)..]
           pairKeys                      = Prelude.map getKey ps 
           getKey (Decl _ (LowerId key)) = key
-          
+         
 -- zip
 --[-7..]
 --Decl Token (LowerId x) -> x
@@ -50,7 +50,7 @@ fStatDecl :: Decl -> Environment -> Code
 fStatDecl env d = []
 
 fStatExpr :: (ValueOrAddress -> Environment -> Code) -> Environment -> Code
-fStatExpr e env = e Value env ++ [pop]
+fStatExpr e env = e Value env   
 
 fStatIf :: (ValueOrAddress -> Environment -> Code) -> (Environment -> Code) -> (Environment -> Code) -> Environment -> Code
 fStatIf e s1 s2 env = c ++ [BRF (n1 + 2)] ++ s1 env ++ [BRA n2] ++ s2 env
@@ -63,7 +63,7 @@ fStatWhile e s1 env = [BRA n] ++ s1 env ++ c ++ [BRT (-(n + k + 2))]
                        (n, k) = (codeSize (s1 env), codeSize c)    
 
 fStatReturn :: (ValueOrAddress -> Environment -> Code) -> Environment -> Code
-fStatReturn e env = e Value env ++ [pop] ++ [RET]
+fStatReturn e env = e Value env ++ [STR r4]
 
 fStatBlock :: [Environment -> Code] -> Environment -> Code
 fStatBlock cod env = concatMap (\e -> e env) cod 
@@ -75,7 +75,7 @@ fExprCon (ConstBool True) _ _ = [LDC 1]
 fExprCon (ConstBool _) _ _    = [LDC 0]
 
 fExprVar :: Token -> ValueOrAddress -> Environment -> Code
-fExprVar (LowerId x) va env = let loc = env ! x in case va of
+fExprVar (LowerId x) va env = let loc = (env ! x) in case va of
                                               Value    ->  [LDL  loc]
                                               Address  ->  [LDLA loc]
 
@@ -92,7 +92,7 @@ fExprOp (Operator op)   e1 e2 va env = e1 Value env ++ e2 Value env ++ [opCodes 
 -- Tasks 6 and 8
 fExprMethPar :: Token -> [ValueOrAddress -> Environment -> Code] -> ValueOrAddress -> Environment -> Code
 fExprMethPar (LowerId "print") exprs va env = concat (Prelude.map (\e -> e va env ++ [TRAP 0]) exprs)
-fExprMethPar (LowerId x) exprs va env = concat (Prelude.map (\e -> e va env) exprs) ++ [Bsr x]
+fExprMethPar (LowerId x) exprs va env = concat (Prelude.map (\e -> e va env) exprs) ++ [Bsr x] ++ [LDR r4]
 
 
 opCodes :: Map String Instr

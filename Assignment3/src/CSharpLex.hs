@@ -48,7 +48,7 @@ terminals =
     , ( KeyIf     , "if"     )
     , ( KeyElse   , "else"   )
     , ( KeyWhile  , "while"  )
-    , ( KeyFor    , "For"    )
+    , ( KeyFor    , "for"    )
     , ( KeyReturn , "return" )
     , ( KeyTry    , "try"    )
     , ( KeyCatch  , "catch"  )
@@ -74,7 +74,11 @@ lexConstInt :: Parser Char Token
 lexConstInt = (ConstInt . read) <$> greedy1 (satisfy isDigit)
 
 lexConstBool :: Parser Char Token
-lexConstBool = (ConstBool . read) <$> (token "False" <|> token "True")
+lexConstBool = (ConstBool . intConverter) <$> (token "false" <|> token "true")
+
+intConverter :: String -> Bool
+intConverter "true" = True
+intConverter "false" = False
 
 lexConstChar :: Parser Char Token
 lexConstChar = ConstChar <$ symbol '\'' <*> satisfy isAlphaNum <* symbol '\''
