@@ -16,7 +16,7 @@ data Stat = StatDecl   Decl
           | StatExpr   Expr 
           | StatIf     Expr Stat Stat
           | StatWhile  Expr Stat
-          | StatFor    Decl Expr Stat 
+          | StatFor    Expr Expr Stat 
           | StatReturn Expr
           | StatBlock  [Stat]
           deriving Show
@@ -125,14 +125,14 @@ pStat :: Parser Token Stat
 pStat =  StatExpr <$> pExpr <*  sSemi
      <|> StatIf     <$ symbol KeyIf     <*> parenthesised pExpr <*> pStat <*> optionalElse
      <|> StatWhile  <$ symbol KeyWhile  <*> parenthesised pExpr <*> pStat 
-     <|> (\(StatFor d e s) -> StatBlock ((StatDecl d) : [StatWhile e s])) <$> pFor
+     <|> (\(StatFor d e s) -> StatBlock ((StatExpr d) : [StatWhile e s])) <$> pFor
      <|> StatReturn <$ symbol KeyReturn <*> pExpr               <*  sSemi
      <|> pBlock
     where optionalElse = option ((\_ x -> x) <$> symbol KeyElse <*> pStat) (StatBlock [])
 
 -- Task 5
 pFor :: Parser Token Stat
-pFor = StatFor <$ symbol KeyFor <* symbol POpen <*> pDecl <* sSemi <*> pExpr <* sSemi <*> ((\s ss -> StatBlock (s : [ss])) <$> pStat <* symbol PClose <*> pStat)
+pFor = StatFor <$ symbol KeyFor <* symbol POpen <*> pExpr <* sSemi <*> pExpr <* sSemi <*> ((\s ss -> StatBlock (s : [ss])) <$> (StatExpr <$> pExpr) <* symbol PClose <*> pStat)
 
 pBlock :: Parser Token Stat
 pBlock = StatBlock <$> braced (many pStatDecl)
