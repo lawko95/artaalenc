@@ -12,8 +12,8 @@ data Member = MemberD Decl
             | MemberM Type Token [Decl] Stat
             deriving Show
 
-data Stat = StatDecl   Decl
-          | StatExpr   Expr
+data Stat = StatDecl   Decl 
+          | StatExpr   Expr 
           | StatIf     Expr Stat Stat
           | StatWhile  Expr Stat
           | StatFor    Decl Expr Stat 
@@ -47,9 +47,6 @@ pExprSimple =  ExprConst <$> sConst
            <|> ExprVar   <$> sLowerId
            <|> pExprMethPar
            <|> parenthesised pExpr
-
-pAllExpr :: Parser Token Expr
-pAllExpr = pExprSimple <|> pExpr
   
 -- Task 6
 pExprMethPar :: Parser Token Expr
@@ -80,37 +77,37 @@ pExpr = chainr oris (ExprOper <$> sOperator1)
 sOperator7 :: Parser Token Token 
 sOperator7 = satisfy isOperator7
   where isOperator7 (Operator x) = elem x multis
-        isOperator7   _          = False
+        isOperator7   _          = error "Illegal expression"
         multis = ["*", "/", "%"]
         
 sOperator6 :: Parser Token Token 
 sOperator6 = satisfy isOperator6
   where isOperator6 (Operator x) = elem x addis
-        isOperator6 _            = False
+        isOperator6 _            = error "Illegal expression" 
         addis = ["+","-"]
 
 sOperator4 :: Parser Token Token 
 sOperator4 = satisfy isOperator4
   where isOperator4 (Operator x) = elem x comparis
-        isOperator4 _            = False
+        isOperator4 _            = error "Illegal expression"
         comparis = ["<=", "<", ">=", ">", "==", "!=", "="]
 
 sOperator3 :: Parser Token Token 
 sOperator3 = satisfy isOperator3
   where isOperator3 (Operator x) = elem x andis
-        isOperator3 _            = False
+        isOperator3 _            = error "Illegal expression"
         andis = ["&&"]
 
 sOperator2 :: Parser Token Token 
 sOperator2 = satisfy isOperator2
   where isOperator2 (Operator x) = elem x oris
-        isOperator2 _            = False
+        isOperator2 _            = error "Illegal expression"
         oris = ["||", "^"]
 
 sOperator1 :: Parser Token Token
 sOperator1 = satisfy isOperator1
   where isOperator1 (Operator "=") = True
-        isOperator1 _              = False
+        isOperator1 _              = error "Illegal expression"
 
 
 

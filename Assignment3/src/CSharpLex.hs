@@ -60,7 +60,7 @@ terminals =
 lexWhiteSpace :: Parser Char String
 lexWhiteSpace = greedy (satisfy isSpace)
 
--- Assignment 3
+-- Task 3
 lexComment :: Parser Char ()
 lexComment = () <$ token "//" <* many (satisfy ( /= '\n') ) <* symbol '\n'
 
@@ -73,6 +73,7 @@ lexUpperId = (\x xs -> UpperId (x:xs)) <$> satisfy isUpper <*> greedy (satisfy i
 lexConstInt :: Parser Char Token
 lexConstInt = (ConstInt . read) <$> greedy1 (satisfy isDigit)
 
+-- Task 1
 lexConstBool :: Parser Char Token
 lexConstBool = (ConstBool . intConverter) <$> (token "false" <|> token "true")
 
@@ -80,6 +81,7 @@ intConverter :: String -> Bool
 intConverter "true" = True
 intConverter "false" = False
 
+-- Task 1
 lexConstChar :: Parser Char Token
 lexConstChar = ConstChar <$ symbol '\'' <*> satisfy isAlphaNum <* symbol '\''
 
@@ -108,7 +110,7 @@ lexToken = greedyChoice
              , lexUpperId
              ]
 
--- Assignment 3
+-- Task 3
 lexicalScanner :: Parser Char [Token]
 lexicalScanner = lexWhiteSpace *> greedy (greedy (lexComment *> lexWhiteSpace) *> lexToken <* lexWhiteSpace) <* eof
 
